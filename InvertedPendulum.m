@@ -1,6 +1,8 @@
 %% Jack Broderick
 %  Connor Feathers
+%  Frank Carag
 % EE451 Inverted Pendulum Project Code
+
 
 %System Parameter Values
 %Masses[kg]:
