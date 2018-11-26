@@ -2,19 +2,38 @@
 %  Connor Feathers
 %  Frank Carag
 % EE451 Inverted Pendulum Project Code
+
+% This used model InvertedPendulum_REV2 for computing the step response
 clear; clc; close all
 
 % This model is good for theta +/15degrees (+/- 0.2618rad)
 
 % Define the model parameters
 T_STOP = 10;
-MODEL_NAME = 'InvertedPendulum_REV1'; % Discretzed with a zero-order hold
+MODEL_NAME = 'InvertedPendulum_REV2'; % Discretzed with a zero-order hold
 
 % Ts = 0.0005; % [sec] - Sample period
 Ts = 0.0017; % [sec] - Sample period of the DAQ unit
 
 GAIN = -1.2; % [A/V] - The gain of the power supply
 
+%% Define the input signal
+% desiredTheta1.time = (0:Ts:T_STOP)';
+% t1 = zeros(size(desiredTheta1.time));
+% t1(end/2:end) = pi/4;
+% desiredTheta1.signals.values = t1';
+% desiredThtea1.signals.dimensions = [1];
+desiredTime = 0:Ts:T_STOP;
+desiredTheta = zeros(size(desiredTime));
+desiredTheta(end/2:end) = pi/4;
+desiredTheta1 = [desiredTime', desiredTheta'];
+
+figure();
+plot(desiredTime, desiredTheta);
+xlabel('Time [sec]');
+ylabel("Desired Theta 1 [rad]");
+title('Desired {\theta}_{1}');
+grid on;
 %% Define the Controller
 
 % Define the controller parameters
@@ -22,8 +41,6 @@ GAIN = -1.2; % [A/V] - The gain of the power supply
 z1 = [-0.1229, -0.02181];
 p1 = [-284.8, 0];
 k1 = [-5.2947];
-
-
 
 % Controller 2
 z2 = [-9.249];
