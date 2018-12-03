@@ -17,6 +17,14 @@ Ts = 0.0017; % [sec] - Sample period of the DAQ unit
 
 GAIN = -1.2; % [A/V] - The gain of the power supply
 
+%% Model Gains
+n = 9; % Gear ratio of the motor
+kt = 60*10^-3; % [Nm/A] - Torque constant of the motor
+Gv = -1.2;     % [A/V] - Gain of the power supply
+
+modelGainV = (1/n)*(1/kt)*(1/Gv); % [V/torque]
+modelGainA = (1/n)*(1/kt);        % [A/torque] 
+
 %% Define the input signal
 % desiredTheta1.time = (0:Ts:T_STOP)';
 % t1 = zeros(size(desiredTheta1.time));
@@ -155,3 +163,11 @@ title('Theta 2');
 ylabel("\theta2 [rad]");
 xlabel("Time [sec]");
 grid on;
+
+
+%% Figure out what the current command to the motor is
+currentCommand = intoModel .* modelGainA;
+figure();
+plot(t, currentCommand);
+title('Current Command');
+xlabel('Time [sec]'); ylabel("Current [A]");
