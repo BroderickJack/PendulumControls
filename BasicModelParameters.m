@@ -1,10 +1,5 @@
-% EE451 Final Project
-% December 5, 2018
+% Load the parameters for the inverted pendulum model
 
-%% Simulation Parameters
-MODEL_NAME = 'InvertedPendulumPolePlacement_REV0';
-
-%% Set up parameters
 %System Parameter Values
 %Masses[kg]:
 mb1=0.12;
