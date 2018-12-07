@@ -1,44 +1,71 @@
 % EE451 Final Project
 % December 5, 2018
+clear; clc; close all;
+
+%% Design Requirements
+Wn = 20;                % [rad/sec]
+gamma = 0.707;          % [damping ratio]
+Wd = Wn*sqrt(1-gamma^2);% [rad/sec]
+r = exp(-1*gamma*Wn
 
 %% Simulation Parameters
 MODEL_NAME = 'InvertedPendulumPolePlacement_REV0';
+T_STOP = 10;% [sec] The end time of the simulation
+Ts = 0.01; % [sec] Sample period of the system (500hz)
 
-%% Set up parameters
-%System Parameter Values
-%Masses[kg]:
-mb1=0.12;
-mr1=0.04;
-mb2=0.084;
-mr2=0.057;
-mb3=0.127;
+%% Load the model parameters
+BasicModelParameters
 
-%Lengths[m]:
-b1=0.033;
-r1=0.07;
-b2=0.184;
-r2=0.152;
-b3=0.324;
+%% Calculate the pole placement gain
+P_cld = [0.95+(1i*0.05); 0.95-(1i*0.05); 0.5; 0.45]; % The desired closed loop discrete time poles
 
-%Inertia
-J1 = mr1*r1^2 + mb1*b1^2 + mb2*b2^2 + (mr2+mb3)*b2^2;
-J2 = mr2*r2^2+mb3*b3^2;
-J3 = (mr2*r2+mb3*b3)*b2;
+% Calculate the discrete State-Space model
+sys_d = c2d(ss(Ac,Bc,Cc,Dc), Ts, 'zoh'); % Calculate the discrete time state space model
+Ad = sys_d.A;
+Bd = sys_d.B;
 
-g=9.81; %gravity
+% Find the gain using the 'place' function
+k_z  = place(Ad, Bd, P_cld);
 
-a23=(J3^2*g)/(b2*(J1*J2-J3^2));
-a43=(J1*J3*g)/(b2*(J1*J2-J3^2));
-b21=J2/(J1*J2-J3^2);
-b41=J3/(J1*J2-J3^2);
+% Calculate steady state error 
+% First we need to design a continuous domain 
+Pcld_s=[-5+1i*5; -5-1i*5; -15; -20];
+K_s = place(Ac, Bc, Pcld_s); % Calculate the continuous domain pole placement gain
+Acf = (Ac-Bc*K_s); % The state matrix with full state feedback
+Hcl_s = tf(ss(Acf, Bc, Cc, Dc)); % Closed loop transfer function
+k_DC = evalfr(Hcl_s(1), 0); % Calclate the dc gain
 
-Ac=[0 1 0 0;
-    0 0 -a23 0;
-    0 0 0 1;
-    0 0 a43 0];
-Bc=transpose([0 b21 0 -b41]);
-Cc=[1 0 0 0;
-    0 0 1 0];
-Dc=[0; 
-    0];
+%% Define the command to the system
+desiredTime = 0:Ts:T_STOP;
+desiredTheta = zeros(size(desiredTime));
+desiredTheta(end/2:end) = pi/4;
+desiredTheta1 = [desiredTime', desiredTheta'];
+figure(); 
+plot(desiredTime, desiredTheta*(180/pi));
+title("Commanded \theta1");
+xlabel("Time [sec]");
+ylabel("Angle [deg]");
+legend('\theta1 Command');
 
+%% Simulate the model
+sim(MODEL_NAME);
+
+%% Plot the outputs from the model
+figure();
+plot(t, Theta1, t, Theta1Dot, t, Theta2, t, Theta2Dot);
+xlabel("Time [sec]");
+ylabel("Angle [rad]");
+legend({'$\theta$1',"$\dot{\theta1}$", '$\theta$2', '$\dot{\theta2}$'}, 'Interpreter' ,'latex' );
+
+figure();
+subplot(211);
+plot(t, Theta1*(180/pi), t, Theta2*(180/pi));
+ylabel("Angle [deg]");
+legend('\theta1','\theta2');
+grid on;
+subplot(212);
+plot(t, Theta1Dot, t, Theta2Dot);
+legend({"$\dot{\theta1}$", '$\dot{\theta2}$'}, 'Interpreter', 'latex');
+xlabel("Time [sec]");
+ylabel("[$\frac{rad}{sec}$]", 'Interpreter', 'latex');
+grid on;
